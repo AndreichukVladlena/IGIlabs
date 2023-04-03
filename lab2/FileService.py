@@ -9,21 +9,18 @@ def read_file(file):
 
 def sentences_counter(text):
     result = [0, 0]
-    flag = True
-    for symbol in text:
-        if symbol == "." and flag:
-            flag = False
-            result[0] += 1
-        elif symbol == "!" or symbol == "?":
-            flag = True
-            result[0] += 1
-            result[1] += 1
-        elif symbol != ".":
-            flag = True
+    reg_ex_non_dec = r"[^a-zA-Z0-9\s]*(?:\.{3}|\.)"
+    # reg_ex_non_dec = r"[^.!?]*(?:\.{3}|\.)"
+    reg_ex_dec = r"[^.!?]*(?:[!?])"
+
+    result[0] = len(re.findall(reg_ex_non_dec, text))+len(re.findall(reg_ex_dec, text))
+    result[1] = len(re.findall(reg_ex_non_dec, text))
     return result
 
 
 def average_sent(text):
+    reg_ex_sent = r"[^.!?]*[\w']+[^.!?]*[.!?]"
+    print(re.findall(reg_ex_sent, text))
     amount = 0
     all_length = 0
     temp_length = 0
@@ -59,8 +56,12 @@ def average_word(text):
     return int(all_length / amount)
 
 
-def repeats(text):
-    reg_ex = r" *([^!?. ]+)[!|?|.| ]"
-    ngrams = re.findall(reg_ex, text)
-    result = Counter(ngrams).most_common(1)
-    return result
+def repeats(text, n, k):
+    cleaned_text = re.sub(r'[^a-zA-Z0-9\s]', '', text.lower())
+    words = cleaned_text.split()
+    ngrams = [tuple(words[i:i + n]) for i in range(len(words) - n + 1)]
+    ngram_counts = Counter(ngrams)
+    return ngram_counts.most_common(k)
+
+
+
