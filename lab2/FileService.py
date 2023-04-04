@@ -14,15 +14,14 @@ def read_file(file):
 def sentences_counter(text):
     result = [0, 0]
     reg_ex_all_sent = r"\s*([^.?!]+)[.?!]"
-    reg_ex_dec = r"[^.!?]*(?:[!?])"
-    sentences = re.findall(reg_ex_all_sent, text)
-    amount = len(sentences)
-    for item in sentences:
+    all_sentences = re.findall(reg_ex_all_sent, text)
+    amount = len(all_sentences)
+    for item in all_sentences:
         for abb in abbreviations:
             if item == abb:
                 amount -= 1
     result[0] = amount
-    result[1] = len(re.findall(reg_ex_all_sent, text))
+    result[1] = len(re.findall(r"[!?]+", text))
     return result
 
 
