@@ -17,9 +17,8 @@ def sentences_counter(text):
     all_sentences = re.findall(reg_ex_all_sent, text)
     amount = len(all_sentences)
     for item in all_sentences:
-        for abb in abbreviations:
-            if item == abb:
-                amount -= 1
+        if item in abbreviations:
+            amount -= 1
     result[0] = amount
     result[1] = len(re.findall(r"[!?]+", text))
     return result
@@ -32,9 +31,8 @@ def average_sent(text):
     sentences = re.findall(sent_reg_ex, text)
     amount = len(sentences)
     for item in sentences:
-        for abb in abbreviations:
-            if item == abb:
-                amount -= 1
+        if item in abbreviations:
+            amount -= 1
     for item in sentences:
         all_length += len(item)
     return int(all_length/amount)
@@ -46,11 +44,12 @@ def average_word(text):
     words = re.split(reg_ex, text)
     for item in words:
         all_length += len(item)
-    return int(all_length / len(words)-1)
+    return int(all_length / (len(words)-1))
 
 
 
-def repeats(text, n, k):
+def repeats(text, n, k): 
+    # не считать пробелы и запятые
     cleaned_text = re.sub(r'[^a-zA-Z0-9\s]', '', text.lower())
     print (cleaned_text)
     words = cleaned_text.split()
