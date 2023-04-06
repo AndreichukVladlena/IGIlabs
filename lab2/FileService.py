@@ -60,4 +60,3 @@ def repeats(text, n, k):
     ngrams = [tuple(words[i:i + n]) for i in range(len(words) - n + 1)]
     ngram_counts = Counter(ngrams)
     return ngram_counts.most_common(k)
-
