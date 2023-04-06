@@ -4,6 +4,7 @@ from collections import Counter
 abbreviations = ['Mr', 'Mrs', 'Dr', 'etc', 'Prof', 'Gen', 'Sgt', 'Col', 'Capt', 'Lt', 'Rev', 'Hon', 'Pres', 'Gov',
                  'Sen']
 
+
 def read_file(file):
     text = ""
     for line in file:
@@ -25,33 +26,36 @@ def sentences_counter(text):
 
 
 def average_sent(text):
-    all_length = 0
-    amount = 0
     sent_reg_ex = r"\s*([^.?!]+)[.?!]"
+    all_length = 0
+    reg_ex = r"\W+"
+    reg_ex_digit = r"\d+"
+    words = re.split(reg_ex, text)
+    filtered_words = [word for word in words if not re.match(reg_ex_digit, word) and len(word) > 0]
+    for item in filtered_words:
+        all_length += len(item)
     sentences = re.findall(sent_reg_ex, text)
     amount = len(sentences)
     for item in sentences:
-        if item in abbreviations:
-            amount -= 1
-    for item in sentences:
-        all_length += len(item)
+        for abb in abbreviations:
+            if item == abb:
+                amount -= 1
     return int(all_length/amount)
 
 
 def average_word(text):
     all_length = 0
     reg_ex = r"\W+"
+    reg_ex_digit = r"\d+"
     words = re.split(reg_ex, text)
-    for item in words:
+    filtered_words = [word for word in words if not re.match(reg_ex_digit, word) and len(word) > 0]
+    for item in filtered_words:
         all_length += len(item)
-    return int(all_length / (len(words)-1))
+    return int(all_length / (len(filtered_words)))
 
 
-
-def repeats(text, n, k): 
-    # не считать пробелы и запятые
+def repeats(text, n, k):
     cleaned_text = re.sub(r'[^a-zA-Z0-9\s]', '', text.lower())
-    print (cleaned_text)
     words = cleaned_text.split()
     ngrams = [tuple(words[i:i + n]) for i in range(len(words) - n + 1)]
     ngram_counts = Counter(ngrams)
