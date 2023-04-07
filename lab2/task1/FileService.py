@@ -40,7 +40,7 @@ def average_sent(text):
         for abb in abbreviations:
             if item == abb:
                 amount -= 1
-    return int(all_length/amount)
+    return round(all_length/amount)
 
 
 def average_word(text):
@@ -51,7 +51,7 @@ def average_word(text):
     filtered_words = [word for word in words if not re.match(reg_ex_digit, word) and len(word) > 0]
     for item in filtered_words:
         all_length += len(item)
-    return int(all_length / (len(filtered_words)))
+    return round(all_length / (len(filtered_words)))
 
 
 def repeats(text, n, k):
