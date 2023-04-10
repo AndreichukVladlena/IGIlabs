@@ -1,6 +1,8 @@
 from distributions import MySet
 import json
-class DataBase():
+
+
+class DataBase:
     def __init__(self):
         self.dict_db = {}
 
@@ -27,8 +29,7 @@ class DataBase():
         if flag:
             self.dict_db[name].remove(val)
         else:
-            print("No such element!")
-
+            print(f"No {val} element!")
 
     def find_item(self, name, key):
         return self.dict_db[name].find(key)
@@ -43,12 +44,12 @@ class DataBase():
         new_dict={}
         for key in self.dict_db.keys():
            new_dict[key] = self.dict_to_list(key)
-        with open("db.json", "w") as file:
+        with open("Lab2/task2/db.json", "w") as file:
             json.dump(new_dict, file)
 
     def load(self, name):
         new_dict = {}
-        with open("db.json", "r") as file:
+        with open("Lab2/task2/db.json", "r") as file:
             new_dict = json.load(file)
         for key in new_dict.keys():
             if key == name:

@@ -22,6 +22,7 @@ def sentences_counter(text):
             amount -= 1
     result[0] = amount
     result[1] = len(re.findall(r"[!?]+", text))
+
     return result
 
 
@@ -40,6 +41,7 @@ def average_sent(text):
         for abb in abbreviations:
             if item == abb:
                 amount -= 1
+
     return round(all_length/amount)
 
 
@@ -51,6 +53,7 @@ def average_word(text):
     filtered_words = [word for word in words if not re.match(reg_ex_digit, word) and len(word) > 0]
     for item in filtered_words:
         all_length += len(item)
+
     return round(all_length / (len(filtered_words)))
 
 
@@ -58,5 +61,12 @@ def repeats(text, n, k):
     cleaned_text = re.sub(r'[^a-zA-Z0-9\s]', '', text.lower())
     words = cleaned_text.split()
     ngrams = [tuple(words[i:i + n]) for i in range(len(words) - n + 1)]
-    ngram_counts = Counter(ngrams)
-    return ngram_counts.most_common(k)
+    ngrams_dict = {}
+    for item in ngrams:
+       if item not in ngrams_dict.keys():
+           ngrams_dict.update({item: 1})
+       else:
+           ngrams_dict[item] += 1
+    result_list = sorted(ngrams_dict.items(), key = lambda elem: elem[1], reverse=True)
+
+    return tuple(result_list[0:k])

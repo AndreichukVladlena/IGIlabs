@@ -4,7 +4,7 @@ from FileService import average_word
 from FileService import read_file
 from FileService import repeats
 
-f = open('text.txt', 'r')
+f = open('Lab2/task1/text.txt', 'r')
 sentencesAmount = [0, 0]
 text = read_file(f)
 

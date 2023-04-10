@@ -1,4 +1,5 @@
 from DataBase import DataBase
+import re
 
 username = input("Enter your username: ")
 answer = ''
@@ -13,16 +14,20 @@ while True:
 
     if status == "autorized":
         if answer.lstrip()[:3] == "add":
-            db.add_item(username, answer.strip()[3:].strip())
+            elements = re.split(r"\s+", answer.strip()[3:].strip())
+            for item in elements:
+                db.add_item(username, item)
             answer = input("Enter an action(add, remove, find, grep, switch, save, load, list, exit):")
         elif answer.lstrip()[:6] == "remove":
-            db.remove_item(username, answer.strip()[6:].strip())
+            elements = re.split(r"\s+", answer.strip()[6:].strip())
+            for item in elements:
+                db.remove_item(username, item)
             answer = input("Enter an action(add, remove, find, grep, switch, save, load, list, exit):")
         elif answer.lstrip()[:4] == "find":
             db.find_item(username, answer.strip()[4:].strip())
             answer = input("Enter an action(add, remove, find, grep, switch, save, load, list, exit):")
         elif answer.lstrip()[:4] == "grep":
-            db.grep_item(username, answer.strip()[4:].strip())
+            print(db.grep_item(username, answer.strip()[4:].strip()))
             answer = input("Enter an action(add, remove, find, grep, switch, save, load, list, exit):")
         elif answer.lstrip()[:4] == "load":
             db.load(username)
