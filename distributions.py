@@ -1,8 +1,7 @@
 import re
 import inspect
 import types
-from constants import CODE_ATTRIBUTES
-from constants import OBJECT_ATTRIBUTES
+from constants import CODE_ATTRIBUTES, OBJECT_ATTRIBUTES, BASIC_TYPES, BASIC_COLLECTIONS
 
 class Serializer:
     def serialize(self,obj):
@@ -149,4 +148,97 @@ class Serializer:
                     }
             else:
                 res[key]=self.serialize(value)
+        return res
+
+class Deserializer:
+    def deserialize(self,obj):
+        if obj["type"] in BASIC_TYPES:
+            return self.deserialize_basic_types(obj["type"],obj["value"])
+        elif obj["type"] in BASIC_COLLECTIONS:
+            return self.deserialize_basic_collections(obj["type"],obj["value"])
+        elif obj["type"]=="dict":
+            return dict(self.deserialize_basic_collections("list",obj["value"]))
+        elif obj["type"]=="cell":
+            return types.CellType(self.deserialize(obj["value"]))
+        elif obj["type"]=="function":
+            return dict(self.deserialize_type_function(obj["value"]))
+        elif obj["type"]=="class":
+            return dict(self.deserialize_type_class(obj["value"]))
+        elif obj["type"]=="staticmethod":
+            return staticmethod(self.deserialize(obj["value"]))
+        elif obj["type"]=="classmethod":
+            return classmethod(self.deserialize(obj["value"]))
+        elif obj["type"]=="object":
+            return self.deserialize_type_object(obj["value"])
+        elif obj["type"]=="code":
+            code=obj["value"]
+            return types.CodeType(*tuple(self.deserialize(code[attribute])for attribute in CODE_ATTRIBUTES))
+
+    def deserialize_basic_types(self,type_obj, obj):
+        if type_obj=="int":
+            return int(obj)
+        elif type_obj=="float":
+            return float(obj)
+        elif type_obj=="bool":
+            return bool(obj)
+        elif type_obj=="str":
+            return str(obj)
+
+    def deserialize_basic_collections(self,type_obj,obj):
+        if type_obj=="tuple":
+            return tuple(self.deserialize(elem) for elem in obj)
+        elif type_obj=="list":
+            return list(self.deserialize(elem) for elem in obj)
+        elif type_obj=="set":
+            return set(self.deserialize(elem) for elem in obj)
+        elif type_obj=="frozenset":
+            return frozenset(self.deserialize(elem) for elem in obj)
+        elif type_obj=="bytearray":
+            return bytearray(self.deserialize(elem) for elem in obj)
+        elif type_obj=="bytes":
+            return bytes(self.deserialize(elem) for elem in obj)
+
+    def deserialize_type_function(self,obj):
+        globals = obj["__globals__"]
+        closures=obj["__closure__"]
+        code=obj["__code__"]
+        obj_globals={}
+
+        for key in globals:
+            if "module" in key:
+                obj_globals[globals[key]["value"]]=__import__(globals[key]["value"])
+            elif globals[key]!=obj["__name__"]:
+                obj_globals[key]=self.deserialize(globals[key])
+
+        closures=tuple(self.deserialize(closures))
+        code = types.CodeType(*tuple(self.deserialize(code[attribute])for attribute in CODE_ATTRIBUTES))
+        res=types.FunctionType(code=code, globals=obj_globals, closure=closures)
+        res.__globals__.update({res.__name__:res})
+        return res
+
+    def deserialize_type_class(self,obj):
+        bases=self.deserialize(obj["__bases__"])
+        items={}
+
+        for item, value in obj.items():
+            items[item]=self.deserialize(value)
+
+        res=type(self.deserialize(obj["__name__"]),bases,items)
+
+        for item in items.values():
+            if inspect.isfunction(item):
+                item.__globals__.update({res.__name__:res})
+            elif isinstance(item, (staticmethod, classmethod)):
+                item.__func__.__globals__.update({res.__name__:res})
+
+        return res
+
+    def deserialize_type_object(self, obj):
+        cls=self.deserialize(obj["__class__"])
+        items={}
+        for (key,value) in obj["__members__"].items():
+            items[key]=self.deserialize(value)
+
+        res = object.__new__(cls)
+        res.__dict__=items
         return res
