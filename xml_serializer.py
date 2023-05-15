@@ -3,7 +3,7 @@ from constants import ELEMENT
 import regex
 
 class XMLSerializer:
-    def __int__(self):
+    def __init__(self):
         self.ser=Serializer()
         self.des=Deserializer()
 

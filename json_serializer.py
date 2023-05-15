@@ -3,7 +3,7 @@ from constants import INT, FLOAT, BOOL, STR, NONE, VALUE
 import regex
 
 class JsonSerializer:
-    def __int__(self):
+    def __init__(self):
         self.ser = Serializer()
         self.des=Deserializer()
 
