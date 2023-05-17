@@ -1,5 +1,6 @@
+import math
 def func(val):
-    return val + 5
+    return math.sin(val + 5)
 
 
 def decorator(func):

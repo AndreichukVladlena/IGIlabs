@@ -5,31 +5,30 @@ from constants import CODE_ATTRIBUTES, OBJECT_ATTRIBUTES, BASIC_TYPES, BASIC_COL
 
 
 class Serializer:
+
+    def get_base_type(self, obj_type):
+        return re.search(r"\'([.\w]+)\'", str(obj_type))[1]
+
     def serialize(self, obj):
 
-        res = {}
+        res = dict()
+        base_object_type = self.get_base_type(type(obj))
 
-        if isinstance(obj, (str, float, int, bool)):
-            res["type"] = self.get_type_of_obj(obj)
+        if isinstance(obj, (str, float, int, bool, complex)):
+            res["type"] = base_object_type
             res["value"] = obj
 
         elif isinstance(obj, (tuple, list, set, frozenset, bytearray, bytes)):
-            res["type"] = self.get_type_of_obj(obj)
-            ser_object = []
-            for value in obj:
-                ser_object.append(self.serialize(value))
-            res["value"] = ser_object
+            res["type"] = base_object_type
+            res["value"] = [self.serialize(enclosed_obj) for enclosed_obj in obj]
 
         elif isinstance(obj, dict):
-            res["type"] = "dict"
-            ser_object = []
-            for value in obj.items():
-                ser_object.append(self.serialize(value))
-            res["value"] = ser_object
+            res["type"] = base_object_type
+            res["value"] = [self.serialize([key, value]) for (key, value) in obj.items()]
 
         elif isinstance(obj, types.CellType):
             res["type"] = "cell"
-            res["value"] = self.serialize_type_function(obj.cell_contents)
+            res["value"] = self.serialize(obj.cell_contents)
 
         elif inspect.isfunction(obj):
             res["type"] = "function"
@@ -62,9 +61,9 @@ class Serializer:
         return re.search(r"\'(\w+)\'", str(type(obj)))[1]
 
     def serialize_type_object(self, obj):
-        res = {}
+        res = dict()
         res["__class__"] = self.serialize(obj.__class__)
-        fields = {}
+        fields = dict()
         for (key, value) in inspect.getmembers(obj):
             if not inspect.isfunction(value) and not inspect.ismethod(value) and not key.startswith("__"):
                 fields[key] = self.serialize(value)
@@ -72,8 +71,10 @@ class Serializer:
         return res
 
     def serialize_type_function(self, obj, class_object=None):
-        res = {}
-        arguments = {}
+        if not inspect.isfunction(obj):
+            return
+        res = dict()
+        arguments = dict()
         res["__name__"] = obj.__name__
         res["__globals__"] = self.get_globals(obj, class_object)
 
@@ -90,7 +91,7 @@ class Serializer:
         return res
 
     def get_globals(self, obj, class_object=None):
-        res = {}
+        res = dict()
         globals = obj.__globals__
         for value in obj.__code__.co_names:
             if value in globals:
@@ -110,8 +111,10 @@ class Serializer:
         return res
 
     def serialize_type_class(self, obj):
+
         res = {}
         bases = []
+
         for base in obj.__bases__:
             if base != object:
                 bases.append(self.serialize(base))
@@ -122,15 +125,22 @@ class Serializer:
                 "type": "tuple",
                 "value": bases
             }
+
         for key in obj.__dict__:
+
             value = obj.__dict__[key]
-            if key in OBJECT_ATTRIBUTES or type(value) in (types.WrapperDescriptorType, types.MethodDescriptorType, types.BuiltinFunctionType, types.GetSetDescriptorType, types.MappingProxyType):
+
+            if key in OBJECT_ATTRIBUTES or type(value) in (types.WrapperDescriptorType, types.MethodDescriptorType, types.BuiltinFunctionType,
+                                                           types.GetSetDescriptorType, types.MappingProxyType):
                 continue
+
             elif isinstance(value, (staticmethod, classmethod)):
+
                 if isinstance(value, staticmethod):
                     value_type = "staticmethod"
                 else:
                     value_type = "classmethod"
+
                 res[key] = \
                     {
                         "type": value_type,
@@ -139,43 +149,59 @@ class Serializer:
                             "value": self.serialize_type_function(value.__func__, obj)
                         }
                     }
+
             elif inspect.ismethod(value):
                 res[key] = self.serialize_type_function(value.__func__, obj)
+
             elif inspect.isfunction(value):
                 res[key] = \
                     {
                         "type": "function",
                         "value": self.serialize_type_function(value, obj)
                     }
+
             else:
                 res[key] = self.serialize(value)
+
         return res
 
 
 class Deserializer:
     def deserialize(self, obj):
+
         if obj["type"] in BASIC_TYPES:
             return self.deserialize_basic_types(obj["type"], obj["value"])
+
         elif obj["type"] in BASIC_COLLECTIONS:
             return self.deserialize_basic_collections(obj["type"], obj["value"])
+
         elif obj["type"] == "dict":
             return dict(self.deserialize_basic_collections("list", obj["value"]))
+
         elif obj["type"] == "cell":
             return types.CellType(self.deserialize(obj["value"]))
+
         elif obj["type"] == "function":
-            return dict(self.deserialize_type_function(obj["value"]))
+            return self.deserialize_type_function(obj["value"])
+
         elif obj["type"] == "class":
-            return dict(self.deserialize_type_class(obj["value"]))
+            return self.deserialize_type_class(obj["value"])
+
         elif obj["type"] == "staticmethod":
             return staticmethod(self.deserialize(obj["value"]))
+
         elif obj["type"] == "classmethod":
             return classmethod(self.deserialize(obj["value"]))
+
         elif obj["type"] == "object":
             return self.deserialize_type_object(obj["value"])
+
+        elif obj["type"] == "cell":
+            return types.CellType(self.deserialize(obj["value"]))
+
         elif obj["type"] == "code":
             code = obj["value"]
             return types.CodeType(*tuple(self.deserialize(code[attribute]) for attribute in CODE_ATTRIBUTES))
-
     def deserialize_basic_types(self, type_obj, obj):
         if type_obj == "int":
             return int(obj)
@@ -185,6 +211,8 @@ class Deserializer:
             return bool(obj)
         elif type_obj == "str":
             return str(obj)
+        elif type_obj == "complex":
+            return complex(obj)
 
     def deserialize_basic_collections(self, type_obj, obj):
         if type_obj == "tuple":
@@ -204,7 +232,7 @@ class Deserializer:
         globals = obj["__globals__"]
         closures = obj["__closure__"]
         code = obj["__code__"]
-        obj_globals = {}
+        obj_globals = dict()
 
         for key in globals:
             if "module" in key:
@@ -219,6 +247,7 @@ class Deserializer:
         return res
 
     def deserialize_type_class(self, obj):
+
         bases = self.deserialize(obj["__bases__"])
         items = {}
 
@@ -228,8 +257,10 @@ class Deserializer:
         res = type(self.deserialize(obj["__name__"]), bases, items)
 
         for item in items.values():
+
             if inspect.isfunction(item):
                 item.__globals__.update({res.__name__: res})
+
             elif isinstance(item, (staticmethod, classmethod)):
                 item.__func__.__globals__.update({res.__name__: res})
 
@@ -237,8 +268,8 @@ class Deserializer:
 
     def deserialize_type_object(self, obj):
         cls = self.deserialize(obj["__class__"])
-        items = {}
-        for (key, value) in obj["__members__"].items():
+        items = dict()
+        for key, value in obj["__members__"].items():
             items[key] = self.deserialize(value)
 
         res = object.__new__(cls)
