@@ -12,7 +12,7 @@ class Product(models.Model):
     photo = models.ImageField(upload_to='images', blank=True)
 
     def __str__(self) :
-        return '{0}, {1}'.format(self.name, self.cost)
+        return f'{self.name}, {self.cost}'
 
 class Provider(models.Model):
     name = models.CharField(max_length=20, help_text="Enter name")
@@ -20,7 +20,7 @@ class Provider(models.Model):
     phone_number = models.CharField(max_length=20, help_text="Enter phone number")
 
     def __str__(self):
-        return '{0}, {1}, {2}'.format(self.name, self.address, self.phone_number)
+        return f'{self.name}, {self.address}, {self.phone_number}'
 
 class ProductType(models.Model):
     designation = models.CharField(max_length=20, help_text="Enter type")
@@ -39,7 +39,7 @@ class Client(models.Model):
     phone_number = models.CharField(max_length=15, help_text='Enter phone number')
 
     def __str__(self):
-        return '{0}, {1}'.format(self.first_name, self.last_name)
+        return f'{self.first_name}, {self.last_name}'
 
     def get_absolute_url(self):
         return reverse('client-detail', args=[str(self.id)])
