@@ -14,6 +14,9 @@ class Product(models.Model):
     def __str__(self) :
         return f'{self.name}, {self.cost}'
 
+    def get_absolute_url(self):
+        return reverse('zooShop_app:product_details', args=[str(self.id)])
+
 class Provider(models.Model):
     name = models.CharField(max_length=20, help_text="Enter name")
     address = models.CharField(max_length=20, help_text="Enter owner")
@@ -27,9 +30,9 @@ class ProductType(models.Model):
 
     def __str__(self):
         return self.designation
-#
-#     # def get_absolute_url(self):
-#     #     return reverse('main:car_list_by_carcass', args=[str(self.designation)])
+
+    def get_absolute_url(self):
+        return reverse('zooShop_app:product_list_by_type', args=[str(self.designation)])
 
 class Client(models.Model):
     first_name = models.CharField(max_length=20, help_text='Enter first name')

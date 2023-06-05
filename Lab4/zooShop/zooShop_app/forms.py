@@ -45,7 +45,7 @@ class LoginUserForm(AuthenticationForm):
 class ProductForm(forms.ModelForm):
     vendor_code = forms.CharField(label='vendor_code', widget=forms.TextInput(attrs={'class': 'form-input'}))
     name = forms.CharField(label='name', widget=forms.TextInput(attrs={'class': 'form-input'}))
-    amount = forms.PositiveIntegerField(label='amount', widget=forms.TextInput(attrs={'class': 'form-input'}))
+    amount = forms.IntegerField(label='amount', widget=forms.TextInput(attrs={'class': 'form-input'}))
     cost = forms.IntegerField(label='cost', widget=forms.TextInput(attrs={'class': 'form-input'}))
 
     class Meta:

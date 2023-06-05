@@ -3,26 +3,26 @@ from django.contrib.auth import logout, login
 from .models import *
 from django.views.generic import DetailView, CreateView
 from django.urls import reverse_lazy
-from main.forms import RegisterUserForm, LoginUserForm, CarForm
+from zooShop_app.forms import RegisterUserForm, LoginUserForm, ProductForm
 from django.contrib.auth.views import LoginView
 from django.http import HttpResponseRedirect
 from django.http import HttpResponseNotFound
-from cart.forms import CartAddCarForm
+from cart.forms import CartAddProductForm
 import requests
 
 
 # Create your views here.
 
 def index(request):
-    cars = Car.objects.all()[:3]
+    products = Product.objects.all()[:3]
     joke = requests.get('https://official-joke-api.appspot.com/jokes/random').json()
     cat = requests.get('https://catfact.ninja/fact').json()
     return render(request, 'index.html',
-                  context={'cars': cars, 'joke': joke['setup'] + joke['punchline'], 'cat': cat['fact']})
+                  context={'products': products, 'joke': joke['setup'] + joke['punchline'], 'cat': cat['fact']})
 
 
 def ProductsList(request, type=None):
-    products = Car.objects.all()
+    products = Product.objects.all()
     product_type = None
     product_types = ProductType.objects.all()
     sort_type_price = request.GET.get('sort_price')
@@ -36,7 +36,7 @@ def ProductsList(request, type=None):
     if type:
         product_type = get_object_or_404(ProductType, designation=type)
         products = products.filter(product_type=product_type)
-        print(carcass_type)
+        print(product_type)
 
     return render(request, 'products.html', {'products': products, 'product_type': product_type, 'product_types': product_types})
 
@@ -50,7 +50,7 @@ class ProductDetailView(DetailView):
 
 def product_detail(request, id):
     product = get_object_or_404(Product, id=id)
-    cart_car_form = CartAddCarForm()
+    cart_product_form = CartAddProductForm()
 
     return render(request,
                   'product_details.html',
@@ -60,7 +60,7 @@ def product_detail(request, id):
 class RegisterUser(CreateView):
     form_class = RegisterUserForm
     template_name = 'register.html'
-    success_url = reverse_lazy('main:login')
+    success_url = reverse_lazy('zooShop_app:login')
 
     def form_valid(self, form):
         user = form.save()
@@ -72,21 +72,21 @@ class RegisterUser(CreateView):
                               phone_number=form.cleaned_data['phone_number']).save()
 
         login(self.request, user)
-        return redirect('index')
+        return redirect('zooShop_app:index')
 
 
 class LoginUser(LoginView):
     form_class = LoginUserForm
     template_name = 'login.html'
-    success_url = reverse_lazy('main:login')
+    success_url = reverse_lazy('zooShop_app:login')
 
     def get_success_url(self):
-        return reverse_lazy('main:index')
+        return reverse_lazy('zooShop_app:index')
 
 
 def logout_user(request):
     logout(request)
-    return redirect('main:index')
+    return redirect('zooShop_app:index')
 
 
 def product_create(request):

@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}
+
+<title>Products Page</title>
+
+{% endblock %}
+
+{% block content %}
+
+
+<ul> 
+
+<form action="{{ request.get_full_path }}" method="get">
+   <button type="submit" name="sort_price" value="ascending">Sort up by price</button>
+   <button type="submit" name="sort_price" value="descending">Sort down by price</button>
+</form>
+
+<div id="sidebar">
+   <h3>Products</h3>
+   <ul>
+       
+       {% for c in product_type %}
+           <li {% if product_type.designation == c.designation %}class="selected" {% endif %}>
+               <a href="{{ c.get_absolute_url }}">{{ c.designation }}</a>
+           </li>
+       {% endfor %}
+   </ul>
+</div>
+
+{% for product in products %}
+<li>    
+   <img src="{{product.photo.url}}">
+
+   <a href="{% url 'zooShop_app:product_details' product.id %}">{{product.name}}, {{product.cost}}</a>
+</li>
+
+{% endfor %}
+
+</ul>
+{% endblock %}

@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}
+    Your shopping cart
+{% endblock %}
+{% block content %}
+    <h1>Your shopping cart</h1>
+    <table class="cart">
+        <thead>
+        <tr>
+            <th></th>
+            <th>Product||</th>
+            <th>Quantity||</th>
+            <th>Remove||</th>
+            <th>Unit price||</th>
+            <th>Price||</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for item in cart %}
+            {% with product=item.product %}
+                <tr>
+                    <td>
+                        <a href="{{ product.get_absolute_url }}">
+                            <img src="{{ product.photo.url }}">
+                        </a>
+                    </td>
+                    <td>{{ product.name }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td><a href="{% url 'cart:cart_remove' product.id %}">Remove</a></td>
+                    <td class="num">{{ item.cost }}</td>
+                    <td class="num">{{ item.total_price }}</td>
+                </tr>
+            {% endwith %}
+        {% endfor %}
+        <tr class="total">
+            <td><h4>Total</h4></td>
+            <td colspan="4"></td>
+            <td class="num"><h4>{{ cart.get_total_price }}</h4></td>
+        </tr>
+        </tbody>
+    </table>
+    <p class="text-right">
+        <h4><a href="{% url 'zooShop_app:products' %}" class="button light">Continue shopping</a>
+            <a href="{% url 'order:order_create' %}">Checkout</a></h4>
+    </p>
+{% endblock %}

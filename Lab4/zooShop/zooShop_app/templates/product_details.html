@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}
+
+<title>Product Details Page</title>
+
+{% endblock %}
+
+{% block content %}
+{%if request.user.is_staff%}
+
+<div>
+    <a href="edit/{{product.id}}/">Edit product</a>
+    <a href="delete/{{product.id}}">Delete product</a>
+
+</div>
+{%endif%}
+<img src="{{product.photo.url}}">
+<ul>
+<li>{{product.vendor_code}}</li>
+<li>{{product.amount}}</li>
+<li>{{product.name}}</li>
+<li>{{product.description}}</li>
+<li>{{product.cost}}</li>
+<li>{{product.product_type}}</li>
+<li>{{product.provider}}</li>
+
+{%if user.is_authenticated%}
+<form action="{% url 'cart:cart_add' product.id %}" method="post">
+    {{ cart_product_form }}
+    {% csrf_token %}
+    <input type="submit" value="Add to cart">
+</form>
+{%endif%}
+
+</ul>
+{% endblock %}
