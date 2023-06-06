@@ -21,7 +21,7 @@ def order_create(request):
                                         product=item['product'],
                                         price=item['price'],
                                         quantity=item['quantity'])
-            item['product'].purchase_count += item['quantity']
+            item['product'].amount += item['quantity']
             item['product'].save()
         # очистка корзины
         cart.clear()

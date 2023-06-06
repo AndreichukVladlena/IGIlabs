@@ -25,3 +25,7 @@ urlpatterns = [
     path('order/', include('order.urls', namespace='order')),
     path('', include('zooShop_app.urls', namespace='zooShop_app')),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+

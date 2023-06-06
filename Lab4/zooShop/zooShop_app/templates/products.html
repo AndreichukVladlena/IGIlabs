@@ -20,7 +20,7 @@
    <h3>Products</h3>
    <ul>
        
-       {% for c in product_type %}
+       {% for c in product_types %}
            <li {% if product_type.designation == c.designation %}class="selected" {% endif %}>
                <a href="{{ c.get_absolute_url }}">{{ c.designation }}</a>
            </li>
